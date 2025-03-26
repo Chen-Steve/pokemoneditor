@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: pokemon-editor
+    runtime: ruby
+    buildCommand: bundle install
+    startCommand: bundle exec rackup config.ru -p $PORT -E production
+    envVars:
+      - key: RACK_ENV
+        value: production 
