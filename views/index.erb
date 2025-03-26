@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pokemon save editor</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            'pokemon-gb': ['PokemonGB', 'system-ui'],
+          },
+          colors: {
+            'pkmn': {
+              'bg': '#f8f8f8',
+              'border': '#306090',
+              'border-dark': '#183048',
+              'blue': '#2890b0',
+              'text': '#2f2f2f'
+            }
+          }
+        },
+      },
+    }
+  </script>
+  <style>
+    @font-face {
+      font-family: 'PokemonGB';
+      src: url('/fonts/PokemonGb-RAeo.ttf') format('truetype');
+      font-weight: normal;
+      font-style: normal;
+    }
+    body {
+      background-color: #e8e8e8;
+      background-image: url("data:image/svg+xml,%3Csvg width='6' height='6' viewBox='0 0 6 6' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23d0d0d0' fill-opacity='0.6' fill-rule='evenodd'%3E%3Cpath d='M5 0h1L0 6V5zM6 5v1H5z'/%3E%3C/g%3E%3C/svg%3E");
+      image-rendering: pixelated;
+    }
+    .pokemon-font {
+      font-family: 'PokemonGB', system-ui;
+      letter-spacing: 0.05em;
+    }
+    .gba-border {
+      @apply border-4 border-pkmn-border shadow-[4px_4px_0_#183048];
+    }
+    .gba-button {
+      @apply pokemon-font px-4 py-2 bg-pkmn-blue text-white border-2 border-pkmn-border-dark shadow-[2px_2px_0_#183048] transition-all duration-100 hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[1px_1px_0_#183048];
+    }
+    .stat-bar {
+      @apply h-2 bg-[#98d8d8] rounded-none;
+    }
+    .stat-bar-fill {
+      @apply h-full bg-pkmn-blue rounded-none;
+    }
+  </style>
+</head>
+<body class="min-h-screen p-8">
+  <div class="max-w-4xl mx-auto">
+    <h1 class="text-2xl mb-8 text-center pokemon-font text-pkmn-border drop-shadow-[2px_2px_0_#98d8d8]">Pokemon Save Editor</h1>
+    
+    <!-- File Upload Form -->
+    <div class="bg-pkmn-bg gba-border p-6 mb-8">
+      <form id="uploadForm" enctype="multipart/form-data" class="flex flex-col items-center gap-4">
+        <input type="file" id="gameFile" name="game_file" accept=".rxdata" required class="hidden">
+        <div class="flex flex-col items-center gap-2">
+          <label for="gameFile" class="gba-button cursor-pointer">
+            Select Game.rxdata
+          </label>
+          <div id="fileName" class="text-sm text-pkmn-text pokemon-font"></div>
+        </div>
+        <button type="submit" class="gba-button disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+          Upload and View Data
+        </button>
+      </form>
+    </div>
+    
+    <!-- Download Button -->
+    <div id="downloadContainer" class="text-center mb-8 hidden">
+      <a href="/api/download" class="gba-button inline-block">
+        Download Modified Game File
+      </a>
+    </div>
+    
+    <!-- Trainer Information -->
+    <div id="trainer-container" class="bg-pkmn-bg gba-border p-6 mb-8 hidden">
+      <h2 class="trainer-name text-xl mb-4 pokemon-font text-pkmn-border"></h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <p class="mb-3"><span class="pokemon-font text-pkmn-text">Trainer ID:</span> <span class="trainer-id pokemon-font"></span></p>
+          <p class="mb-3">
+            <span class="pokemon-font text-pkmn-text">Money:</span>
+            <div class="trainer-money-container inline-flex items-center gap-2">
+              <span class="pokemon-font">₽</span><span class="trainer-money min-w-[80px] px-2 border-2 border-pkmn-border pokemon-font" contenteditable="true" spellcheck="false"></span>
+              <button class="save-money gba-button opacity-0">Save</button>
+            </div>
+          </p>
+          <p class="mb-3"><span class="pokemon-font text-pkmn-text">Pokédex:</span> <span class="trainer-pokedex pokemon-font"></span></p>
+        </div>
+        <div>
+          <p class="mb-3"><span class="pokemon-font text-pkmn-text">Seen:</span> <span class="trainer-seen pokemon-font"></span></p>
+          <p class="mb-3"><span class="pokemon-font text-pkmn-text">Owned:</span> <span class="trainer-owned pokemon-font"></span></p>
+          <div>
+            <span class="pokemon-font text-pkmn-text">Badges:</span>
+            <div class="badges-container flex flex-wrap gap-2 mt-2"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Pokemon Cards -->
+    <div id="pokemon-container" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <!-- Pokemon cards will be inserted here -->
+    </div>
+  </div>
+  
+  <script src="/js/pokemon-editor.js"></script>
+</body>
+</html>
