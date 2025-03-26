@@ -8,12 +8,13 @@ require 'fileutils'
 # Load the Pokemon data processing logic
 require_relative 'pokemon'
 
-# Configure Sinatra for development
-set :environment, :development
+# Configure Sinatra
+set :environment, ENV['RACK_ENV'] || :production  # Use production by default
 set :show_exceptions, false
 set :raise_errors, true
 set :dump_errors, false
 set :logging, false
+set :bind, '0.0.0.0'  # Allow connections from any host
 
 # Configure Sinatra
 set :public_folder, 'public'
