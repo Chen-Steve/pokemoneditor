@@ -190,6 +190,147 @@ post '/api/update_money' do
   end
 end
 
+# API endpoint to update Pokemon stats
+post '/api/update_stat' do
+  content_type :json
+  
+  begin
+    # Parse JSON from raw body
+    request_payload = JSON.parse(request.body.read)
+    pokemon_index = request_payload['pokemon_index']
+    stat_name = request_payload['stat_name']
+    new_value = request_payload['value'].to_i
+    
+    # Debug information
+    puts "Updating Pokemon #{pokemon_index} stat #{stat_name} to #{new_value}"
+    
+    # Validate inputs
+    unless pokemon_index.is_a?(Integer) && pokemon_index >= 0
+      halt 400, { error: "Invalid Pokemon index", success: false }.to_json
+    end
+    
+    unless new_value.is_a?(Integer) && new_value >= 0 && new_value <= 255
+      halt 400, { error: "Invalid stat value", success: false }.to_json
+    end
+    
+    # Check if we have data loaded
+    if $uploaded_data.nil? || $current_file.nil?
+      halt 400, { error: "No Pokemon data loaded", success: false }.to_json
+    end
+    
+    # Get the Pokemon party
+    party = $uploaded_data.instance_variable_get("@party")
+    
+    # Validate Pokemon index
+    unless party && pokemon_index < party.length
+      halt 400, { error: "Pokemon not found", success: false }.to_json
+    end
+    
+    pokemon = party[pokemon_index]
+    
+    # Map stat name to instance variable
+    stat_mapping = {
+      'hp' => '@hp',
+      'total_hp' => '@totalhp',
+      'attack' => '@attack',
+      'defense' => '@defense',
+      'special_attack' => '@spatk',
+      'special_defense' => '@spdef',
+      'speed' => '@speed'
+    }
+    
+    stat_var = stat_mapping[stat_name]
+    unless stat_var
+      halt 400, { error: "Invalid stat name", success: false }.to_json
+    end
+    
+    # Update the stat
+    pokemon.instance_variable_set(stat_var, new_value)
+    
+    # For HP, ensure total_hp is updated if we're updating hp
+    if stat_name == 'hp' && new_value > pokemon.instance_variable_get('@totalhp')
+      pokemon.instance_variable_set('@totalhp', new_value)
+    end
+    
+    # Save the modified data back to the file
+    File.binwrite($current_file, Marshal.dump($uploaded_data))
+    
+    # Return success response
+    { 
+      success: true, 
+      new_value: new_value,
+      download_ready: true
+    }.to_json
+    
+  rescue JSON::ParserError
+    halt 400, { error: "Invalid JSON format", success: false }.to_json
+  rescue => e
+    puts "Error updating stat: #{e.class} - #{e.message}"
+    puts e.backtrace
+    halt 500, { error: "Internal server error", success: false }.to_json
+  end
+end
+
+# API endpoint to update Pokemon level
+post '/api/update_level' do
+  content_type :json
+  
+  begin
+    # Parse JSON from raw body
+    request_payload = JSON.parse(request.body.read)
+    pokemon_index = request_payload['pokemon_index']
+    new_value = request_payload['value'].to_i
+    
+    # Debug information
+    puts "Updating Pokemon #{pokemon_index} level to #{new_value}"
+    
+    # Validate inputs
+    unless pokemon_index.is_a?(Integer) && pokemon_index >= 0
+      halt 400, { error: "Invalid Pokemon index", success: false }.to_json
+    end
+    
+    unless new_value.is_a?(Integer) && new_value >= 1 && new_value <= 100
+      halt 400, { error: "Invalid level value", success: false }.to_json
+    end
+    
+    # Check if we have data loaded
+    if $uploaded_data.nil? || $current_file.nil?
+      halt 400, { error: "No Pokemon data loaded", success: false }.to_json
+    end
+    
+    # Get the Pokemon party
+    party = $uploaded_data.instance_variable_get("@party")
+    
+    # Validate Pokemon index
+    unless party && pokemon_index < party.length
+      halt 400, { error: "Pokemon not found", success: false }.to_json
+    end
+    
+    pokemon = party[pokemon_index]
+    
+    # Update the level
+    pokemon.instance_variable_set("@level", new_value)
+    pokemon.instance_variable_set("@obtainLevel", new_value)  # Update both level variables
+    
+    # Save the modified data back to the file
+    File.binwrite($current_file, Marshal.dump($uploaded_data))
+    
+    # Return success response
+    { 
+      success: true, 
+      new_value: new_value,
+      download_ready: true
+    }.to_json
+    
+  rescue JSON::ParserError
+    halt 400, { error: "Invalid JSON format", success: false }.to_json
+  rescue => e
+    puts "Error updating level: #{e.class} - #{e.message}"
+    puts e.backtrace
+    halt 500, { error: "Internal server error", success: false }.to_json
+  end
+end
+
 # API endpoint to download modified file
 get '/api/download' do
   if $current_file && File.exist?($current_file)
